@@ -3,22 +3,76 @@ from libs.captcha.captcha import captcha
 from django_redis import get_redis_connection
 from django.shortcuts import render
 import logging
-logger=logging.getLogger('django')
+
+logger = logging.getLogger('django')
 from django.views import View
 from utils.response_code import RETCODE
 from random import randint
 from libs.yuntongxun.sms import CCP
 
+
 # Create your views here.
 
-
-
-
+import re
+from users.models import User
+from django.db import DatabaseError
 
 # 注册视图
 class RegisterView(View):
     def get(self, requset):
+        """"""
         return render(requset, 'register.html')
+
+    def post(self,request):
+        """"""
+        """
+        1.接收数据
+        2.验证数据
+            2.1参数是否齐全
+            2.2手机号的格式是否正确
+            2.3密码是否符合格式
+            2.4密码和确认密码要一致
+            2.5短信验证码是否edis中的一致
+        3.保存注册信息
+        4.返回响应跳转到指定页面
+        """
+        # 1.接收数据
+        mobile = request.POST.get('mobile')
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+        smscode=request.POST.get('sms_code')
+        # 2.验证数据
+        #     2.1参数是否齐全
+        if not all([mobile, password, password2, smscode]):
+            return HttpResponseBadRequest('缺少必传参数')
+        #     2.2手机号的格式是否正确
+        if not re.match(r'^1[3-9]\d{9}$', mobile):
+            return HttpResponseBadRequest('请输入正确的手机号码')
+        #     2.3密码是否符合格式
+        if not re.match(r'^[0-9A-Za-z]{8,20}$', password):
+            return HttpResponseBadRequest('请输入8-20位的密码')
+        #     2.4密码和确认密码要一致
+        if password != password2:
+            return HttpResponseBadRequest('两次输入的密码不一致')
+        #     2.5短信验证码是否edis中的一致
+        redis_conn = get_redis_connection('default')
+        sms_code_server = redis_conn.get('sms:%s' % mobile)
+        if sms_code_server is None:
+            return HttpResponseBadRequest('短信验证码已过期')
+        if smscode != sms_code_server.decode():
+            return HttpResponseBadRequest('短信验证码错误')
+        # 3.保存注册信息
+        # create_user可以使用系统的方法来对密码进行伽密
+        try:
+            user = User.objects.create_user(username=mobile,
+                                            mobile=mobile,
+                                            password=password
+                                            )
+        except DatabaseError:
+            return HttpResponseBadRequest('注册失败')
+        # 4.返回响应跳转到指定页面
+        # 暂时返回一个注册成功的信息，后期再实现跳转到指定页面
+        return HttpResponse('注册成功，重定向到首页')
 
 
 class ImageCodeView(View):
@@ -109,4 +163,4 @@ class SmsCodeView(View):
         # CCP().send_template_sms(mobile, [sms_code, 5], 1)
 
         # 6.响应结果
-        return JsonResponse({'code': RETCODE.OK, 'errmsg': '发送短信成功','sms_code':sms_code})
+        return JsonResponse({'code': RETCODE.OK, 'errmsg': '发送短信成功', 'sms_code': sms_code})

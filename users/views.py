@@ -1,12 +1,18 @@
 from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse
-from django.shortcuts import render
 from libs.captcha.captcha import captcha
 from django_redis import get_redis_connection
+from django.shortcuts import render
+import logging
+logger=logging.getLogger('django')
+from django.views import View
+from utils.response_code import RETCODE
+from random import randint
+from libs.yuntongxun.sms import CCP
 
 # Create your views here.
 
 
-from django.views import View
+
 
 
 # 注册视图
@@ -42,3 +48,65 @@ class ImageCodeView(View):
         redis_conn.setex('img:%s' % uuid, 300, text)
         # 5.返回图片二进制，将生成的图片以content_type为image/jpeg的形式返回给请求
         return HttpResponse(image, content_type='image/jpeg')
+
+
+class SmsCodeView(View):
+
+    def get(self, request):
+
+        """
+        http://127.0.0.1:8000/smscode/?mobile=18888888888&_code=xxxx&uuid=xxxxx
+        1.接收参数
+        2.参数的验证
+            2.1验证参数是否齐全
+            2.2图片验证码的验证
+                    连接redis,获取redis中的图片验证码
+                    判断图片验证码是否存在
+                    如果图片验证码末过期，我们获取到之后就可以删除图片验证码
+                    对比图片验证码
+        3.生成短信验证码
+        4.保存短信验证码到redis中
+        5.发送短信
+        6.返回响应
+        """
+        # 1.接收参数（查询字符串的形式）
+        mobile = request.GET.get('mobile')
+        image_code_client = request.GET.get('image_code')
+        uuid = request.GET.get('uuid')
+
+        # 2.参数的验证
+        #   2.1验证参数是否齐全
+        if not all([image_code_client, uuid, mobile]):
+            return JsonResponse({'code': RETCODE.NECESSARYPARAMERR, 'errmsg': '缺少必传参数'})
+
+        #   2.2图片验证码的验证
+        #       连接redis, 获取redis中的图片验证码
+        redis_conn = get_redis_connection('default')
+        image_code_server = redis_conn.get('img:%s' % uuid)
+        #       判断图片验证码是否存在（图形验证码过期或者不存在）
+        if image_code_server is None:
+            return JsonResponse({'code': RETCODE.IMAGECODEERR, 'errmsg': '图形验证码失效'})
+        #      如果图片验证码末过期，我们获取到之后就可以删除图片验证码
+        try:
+            redis_conn.delete('img:%s' % uuid)
+        except Exception as e:
+            logger.error(e)
+        #       对比图形验证码,注意大小写的问题，redis数据类型是：bytes类型
+        image_code_server = image_code_server.decode()  # bytes转字符串
+        if image_code_client.lower() != image_code_server.lower():  # 转小写后比较
+            return JsonResponse({'code': RETCODE.IMAGECODEERR, 'errmsg': '输入图形验证码有误'})
+
+        # 3.生成短信验证码：生成6位数验证码
+        sms_code = '%06d' % randint(0, 999999)
+        # 为了后期比对方便，我们可以将短信验证码记录到日志中
+        logger.info(sms_code)
+        # 4.保存短信验证码到redis中，并设置有效期
+        redis_conn.setex('sms:%s' % mobile, 300, sms_code)
+        # 5.发送短信验证码
+        # 参数1：测试手机号
+        # 参数2：模板内容列表：1}短信验证码 2}分钟有效
+        # 参数3：模板免费开发测试使用的模板ID为1
+        # CCP().send_template_sms(mobile, [sms_code, 5], 1)
+
+        # 6.响应结果
+        return JsonResponse({'code': RETCODE.OK, 'errmsg': '发送短信成功','sms_code':sms_code})

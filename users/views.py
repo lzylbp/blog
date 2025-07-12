@@ -4,7 +4,9 @@ from django.shortcuts import render
 
 
 from django.views import View
+
+
 # 注册视图
 class RegisterView(View):
-    def get(self,requset):
-        return render(requset,'register.html')
+    def get(self, requset):
+        return render(requset, 'register.html')

@@ -4,26 +4,26 @@ var vm = new Vue({
     delimiters: ['[[', ']]'],
     data: {
         host,
-        show_menu:false,
-        mobile:'',
-        mobile_error:false,
-        mobile_error_message:'手机号错误',
-        password:'',
-        password_error:false,
-        password_error_message:'密码错误',
-        password2:'',
-        password2_error:false,
-        password2_error_message:'密码不一致',
-        image_code:'',
-        image_code_error:false,
-        image_code_error_message:'图片验证码错误',
-        sms_code:'',
-        sms_code_error:false,
-        sms_code_error_message:'短信验证码错误',
-        sms_code_message:'点击获取验证码',
-        image_code_url:''
+        show_menu: false,
+        mobile: '',
+        mobile_error: false,
+        mobile_error_message: '手机号错误',
+        password: '',
+        password_error: false,
+        password_error_message: '密码错误',
+        password2: '',
+        password2_error: false,
+        password2_error_message: '密码不一致',
+        image_code: '',
+        image_code_error: false,
+        image_code_error_message: '图片验证码错误',
+        sms_code: '',
+        sms_code_error: false,
+        sms_code_error_message: '短信验证码错误',
+        sms_code_message: '点击获取验证码',
+        image_code_url: ''
     },
-    mounted(){
+    mounted() {
         this.generate_image_code()
     },
     methods: {
@@ -47,7 +47,7 @@ var vm = new Vue({
             this.image_code_url = this.host + "/imagecode/?uuid=" + this.uuid;
         },
         //检查手机号
-        check_mobile: function(){
+        check_mobile: function () {
             var re = /^1[3-9]\d{9}$/;
             if (re.test(this.mobile)) {
                 this.mobile_error = false;
@@ -56,7 +56,7 @@ var vm = new Vue({
             }
         },
         //检查密码
-        check_password:function () {
+        check_password: function () {
             var re = /^[0-9A-Za-z]{8,20}$/;
             if (re.test(this.password)) {
                 this.password_error = false;
@@ -65,7 +65,7 @@ var vm = new Vue({
             }
         },
         //检查确认密码
-        check_password2:function () {
+        check_password2: function () {
             if (this.password != this.password2) {
                 this.password2_error = true;
             } else {
@@ -73,7 +73,7 @@ var vm = new Vue({
             }
         },
         //检查验证码
-        check_image_code:function () {
+        check_image_code: function () {
             if (!this.image_code) {
                 this.image_code_error = true;
             } else {
@@ -81,7 +81,7 @@ var vm = new Vue({
             }
         },
         //检查短信验证码
-        check_sms_code:function () {
+        check_sms_code: function () {
             if (!this.sms_code) {
                 this.sms_code_error = true;
             } else {
@@ -89,7 +89,7 @@ var vm = new Vue({
             }
         },
         //发送短信验证码
-        send_sms_code:function () {
+        send_sms_code: function () {
             if (this.sending_flag == true) {
                 return;
             }
@@ -101,8 +101,8 @@ var vm = new Vue({
 
             if (this.mobile_error == true || this.image_code_error == true) {
                 this.sending_flag = false;
-                this.sms_code_error=true;
-                this.sms_code_error_message='手机号或验证码错误'
+                this.sms_code_error = true;
+                this.sms_code_error_message = '手机号或验证码错误'
                 return;
             }
             this.sending_flag = true;
@@ -112,7 +112,7 @@ var vm = new Vue({
                 responseType: 'json'
             })
                 .then(response => {
-                    this.image_code_error=false;
+                    this.image_code_error = false;
                     // 表示后端发送短信成功
                     if (response.data.code == '0') {
                         // 倒计时60秒，60秒后允许用户再次点击发送短信验证码的按钮
@@ -148,7 +148,7 @@ var vm = new Vue({
                 })
         },
         //提交
-        on_submit:function () {
+        on_submit: function () {
             this.check_mobile();
             this.check_password();
             this.check_password2();

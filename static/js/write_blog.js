@@ -4,18 +4,18 @@ var vm = new Vue({
     delimiters: ['[[', ']]'],
     data: {
         host,
-        show_menu:false,
-        username:'',
-        is_login:false
+        show_menu: false,
+        username: '',
+        is_login: false
     },
-    mounted(){
-        this.username=getCookie('username');
-        this.is_login=getCookie('is_login');
+    mounted() {
+        this.username = getCookie('username');
+        this.is_login = getCookie('is_login');
     },
     methods: {
         //显示下拉菜单
-        show_menu_click:function(){
-            this.show_menu = !this.show_menu ;
+        show_menu_click: function () {
+            this.show_menu = !this.show_menu;
         }
     }
 });

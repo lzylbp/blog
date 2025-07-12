@@ -4,30 +4,30 @@ var vm = new Vue({
     delimiters: ['[[', ']]'],
     data: {
         host,
-        show_menu:false,
-        mobile:'',
-        password:'',
-        remembered:'',
+        show_menu: false,
+        mobile: '',
+        password: '',
+        remembered: '',
     },
-    mounted(){
-       
+    mounted() {
+
     },
     methods: {
         //显示下拉菜单
-        show_menu_click:function(){
-            this.show_menu = !this.show_menu ;
+        show_menu_click: function () {
+            this.show_menu = !this.show_menu;
         },
         //检查手机号
-        check_mobile:function () {
-            
+        check_mobile: function () {
+
         },
         //检查密码
-        check_mobile:function () {
-            
+        check_mobile: function () {
+
         },
         //提交
-        on_submit:function () {
-            
+        on_submit: function () {
+
         }
     }
 });

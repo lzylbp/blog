@@ -1,6 +1,6 @@
 # 进行user 自应用的视图路由
 from django.urls import path
-from users.views import RegisterView, ImageCodeView, SmsCodeView, LoginView, LogoutView,ForgetPasswordView,UserCenterView
+from users.views import RegisterView, ImageCodeView, SmsCodeView, LoginView, LogoutView,ForgetPasswordView,UserCenterView,WriteBlogView
 
 from . import views
 
@@ -22,4 +22,6 @@ urlpatterns = [
     path('forgetpassword/', ForgetPasswordView.as_view(),name='forgetpassword'),
     # 用户中心
     path('center/', UserCenterView.as_view(),name='center'),
+    # 写博客路由
+    path('writeblog/', WriteBlogView.as_view(),name='writeblog'),
 ]

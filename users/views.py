@@ -412,3 +412,11 @@ class UserCenterView(LoginRequiredMixin, View):
         return response
 
 
+class WriteBlogView(LoginRequiredMixin,View):
+
+    def get(self,request):
+
+        return render(request,'write_blog.html')
+
+
+

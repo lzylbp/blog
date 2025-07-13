@@ -90,7 +90,7 @@ class RegisterView(View):
         # #设置cooki信息，以方便首页中用户信息展示的判断和用户信息的展示
         response.set_cookie('is_login', True)
         response.set_cookie('username', user.username, max_age=30 * 24 * 3600)
-        
+
         return response
 
 
@@ -124,7 +124,6 @@ class ImageCodeView(View):
 
 
 import logging
-
 logger = logging.getLogger('django')
 
 
@@ -188,3 +187,9 @@ class SmsCodeView(View):
 
         # 6.响应结果
         return JsonResponse({'code': RETCODE.OK, 'errmsg': '发送短信成功', 'sms_code': sms_code})
+
+
+
+class LoginView(View):
+    def get(self,request):
+        return render(request,'login.html')

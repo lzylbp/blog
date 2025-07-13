@@ -15,6 +15,9 @@ class User(AbstractUser):
     # 自定义-个人简介
     user_desc = models.TextField(max_length=500, blank=True)
 
+    # 修改认证的字段为手机号
+    USERNAME_FIELD = "mobile"
+
     class Meta:
         db_table = 'tb_user'  # 修改默认的表名
         verbose_name = '用户信息'  # Admin后台显示

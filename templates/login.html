@@ -36,6 +36,7 @@
             <div class="col-12">
                 <div class="col-6">
                     <form class="login" id="login_form" method="POST">
+                        {% csrf_token %}
                         <div class="form-group">
                             <label for="id_login">账号: </label>
                             <input type="text" name="mobile" placeholder="请输入手机号" autofocus="autofocus" required

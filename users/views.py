@@ -125,8 +125,6 @@ class ImageCodeView(View):
 
 import logging
 logger = logging.getLogger('django')
-
-
 class SmsCodeView(View):
 
     def get(self, request):
@@ -187,10 +185,6 @@ class SmsCodeView(View):
 
         # 6.响应结果
         return JsonResponse({'code': RETCODE.OK, 'errmsg': '发送短信成功', 'sms_code': sms_code})
-
-
-
-
 
 
 class LoginView(View):
@@ -256,4 +250,15 @@ class LoginView(View):
             response.set_cookie('username', user.username, max_age=30 * 24 * 3600)
 
         # 7.返回啊应
+        return response
+
+from django.contrib.auth import logout
+class LogoutView(View):
+    def get(self,request):
+        # 1.session数据清除
+        logout(request)
+        # 2.删除部分cookie数据
+        response = redirect(reverse('home:index'))
+        response.delete_cookie('is_login')
+        # 3.跳转到首页
         return response

@@ -1,6 +1,5 @@
 from django.http import HttpResponseBadRequest, HttpResponse, JsonResponse
 
-
 from libs.captcha.captcha import captcha
 from django_redis import get_redis_connection
 from django.shortcuts import render
@@ -10,7 +9,6 @@ from utils.response_code import RETCODE
 from random import randint
 from libs.yuntongxun.sms import CCP
 
-
 # Create your views here.
 
 import re
@@ -19,13 +17,14 @@ from django.db import DatabaseError
 from django.shortcuts import redirect
 from django.urls import reverse
 
+
 # 注册视图
 class RegisterView(View):
     def get(self, requset):
         """"""
         return render(requset, 'register.html')
 
-    def post(self,request):
+    def post(self, request):
         """"""
         """
         1.接收数据
@@ -42,7 +41,7 @@ class RegisterView(View):
         mobile = request.POST.get('mobile')
         password = request.POST.get('password')
         password2 = request.POST.get('password2')
-        smscode=request.POST.get('sms_code')
+        smscode = request.POST.get('sms_code')
         # 2.验证数据
         #     2.1参数是否齐全
         if not all([mobile, password, password2, smscode]):
@@ -72,6 +71,11 @@ class RegisterView(View):
                                             )
         except DatabaseError:
             return HttpResponseBadRequest('注册失败')
+
+        #   状态保持
+        from django.contrib.auth import login
+        login(request, user)
+
         # 4.返回响应跳转到指定页面
         # 暂时返回一个注册成功的信息，后期再实现跳转到指定页面
         # return HttpResponse('注册成功，重定向到首页')
@@ -79,7 +83,15 @@ class RegisterView(View):
         # redirect是进行重定向
         # reverse是可以通过 namespace：name来获取到视图所对应的路由
         # redirect
-        return redirect(reverse('home:index'))
+        # return redirect(reverse('home:index'))
+
+        # 跳转到首页
+        response = redirect(reverse('home:index'))
+        # #设置cooki信息，以方便首页中用户信息展示的判断和用户信息的展示
+        response.set_cookie('is_login', True)
+        response.set_cookie('username', user.username, max_age=30 * 24 * 3600)
+        
+        return response
 
 
 class ImageCodeView(View):
@@ -110,8 +122,11 @@ class ImageCodeView(View):
         # 5.返回图片二进制，将生成的图片以content_type为image/jpeg的形式返回给请求
         return HttpResponse(image, content_type='image/jpeg')
 
+
 import logging
+
 logger = logging.getLogger('django')
+
 
 class SmsCodeView(View):
 

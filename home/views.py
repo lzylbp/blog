@@ -77,15 +77,23 @@ class DetailView(View):
             article=Article.objects.get(id=id)
         except Article.DoesNotExist:
             return render(request,'404.html')
+        else:
+            # 让浏览量+1
+            article.total_views += 1
+            article.save()
 
         # 3.查询分类数据
         categories = ArticleCategory.objects.all()
+
+        # 获取浏览量前10的数据
+        hot_articles = Article.objects.order_by('-total_views')[:9]
 
         # 4.组织模板数据
         context = {
             'categories':categories,
             'category':article.category,
             'article':article,
+            'hot_articles': hot_articles,
         }
 
         return render(request,'detail.html',context=context)

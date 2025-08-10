@@ -76,7 +76,7 @@ class DetailView(View):
             # 2.根据文章id进行文章数据的查询
             article=Article.objects.get(id=id)
         except Article.DoesNotExist:
-            pass
+            return render(request,'404.html')
 
         # 3.查询分类数据
         categories = ArticleCategory.objects.all()

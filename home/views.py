@@ -1,4 +1,5 @@
 from django.shortcuts import render
+
 from django.views import View
 from home.models import ArticleCategory,Article
 from django.http import HttpResponseNotFound
@@ -59,6 +60,9 @@ class IndexView(View):
         return render(request, 'index.html', context=context)
 
 
+from home.models import Comment,Article
+from django.urls import reverse
+from django.shortcuts import redirect
 class DetailView(View):
 
     def get(self,request):
@@ -99,3 +103,47 @@ class DetailView(View):
         return render(request,'detail.html',context=context)
 
 
+    def post(self,request):
+        """
+        # 1.先接收用户信息
+        # 2.判断用户是否登录
+        # 3.登录用户则可以接收form数据
+        #     3.1 接收评论数据
+        #     3.2 验证文章是否存在
+        #     3.3 保存评论数据
+        #     3.4 修改文章的评论数量
+        # 4.未登录用户则跳转到登录页面
+
+        """
+        # 1.先接收用户信息
+        user=request.user
+
+        # 2.判断用户是否登录
+        if user and user.is_authenticated:
+            # 3.登录用户则可以接收form数据
+            # 3.1 接收评论数据
+            id=request.POST.get('id')
+            content=request.POST.get('content')
+
+            # 3.2 验证文章是否存在
+            try:
+                article = Article.objects.get(id=id)
+            except Article.DoesNotExist:
+                return HttpResponseNotFound('没有此文章')
+
+            # 3.3 保存评论数据
+            Comment.objects.create(
+                content=content,
+                article=article,
+                user=user
+            )
+            # 3.4 修改文章的评论数量
+            article.comments_count+=1
+            article.save()
+
+            # 刷新当前页面（页面重定向）
+            path=reverse('home:detail')+'?id={}'.format(article.id)
+            return redirect(path)
+        else:
+            # 4.未登录用户则跳转到登录页面
+            return redirect(reverse('users:login'))

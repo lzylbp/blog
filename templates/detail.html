@@ -98,6 +98,8 @@
                 <br>
                 <div>
                     <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="id" value="{{ article.id }}">
                         <div class="form-group"><label for="body"><strong>我也要发言：</strong></label>
                             <div>
 

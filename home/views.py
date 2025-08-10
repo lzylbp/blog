@@ -70,7 +70,11 @@ class DetailView(View):
         1.接收文章id信息
         2.根据文章id进行文章数据的查询
         3.查询分类数据
-        4.组织模板数据
+        4.获取分页请求参数
+        5.根据文章信息查询评论数据
+        6.创建分页器
+        7.进行分页处理
+        8.组织模板数据
         """
         # 1.接收文章id信息
         # detail/?id=xxx&page_num=xxx&page_size=xxx
@@ -92,12 +96,36 @@ class DetailView(View):
         # 获取浏览量前10的数据
         hot_articles = Article.objects.order_by('-total_views')[:9]
 
-        # 4.组织模板数据
+        # 4.获取分页请求参数
+        page_size = request.GET.get('page_size', 5)
+        page_num = request.GET.get('page_num', 1)
+        # 5.根据文章信息查询评论数据
+        comments = Comment.objects.filter(article=article).order_by('-created')
+        #   获取评论总数
+        total_count = comments.count()
+        # 6.创建分页器
+        from django.core.paginator import Paginator,EmptyPage
+        paginator = Paginator(comments, page_size)
+        # 7.进行分页处理
+        try:
+            page_comments = paginator.page(page_num)
+        except EmptyPage:
+            # 如果page_num不正确，默认给用户404
+            return HttpResponseNotFound('empty page')
+
+        # 获取列表页总页数
+        total_page = paginator.num_pages
+        # 8.组织模板数据
         context = {
             'categories':categories,
             'category':article.category,
             'article':article,
             'hot_articles': hot_articles,
+            'total_count': total_count,
+            'comments': page_comments,
+            'page_size': page_size,
+            'total_page': total_page,
+            'page_num': page_num,
         }
 
         return render(request,'detail.html',context=context)
